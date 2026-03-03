@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using ModestTree;
+using TMPro;
 using UnityEngine;
 
 namespace Interaction
@@ -25,15 +26,18 @@ namespace Interaction
             var trigger = GetInteractionTrigger();
             var interactable = trigger ? trigger.Interactable : null;
             interactionText.gameObject.SetActive(interactable != null);
-            
-            if (interactable != null && interactable != _currentInteractable)
-                interactionText.text = $"Press  <sprite name=ml>  to {interactable.InteractionText}";
-            
-            if (_currentTrigger)
-                _currentTrigger.Outline.enabled = false;
-            
-            if (trigger)
-                trigger.Outline.enabled = true;
+
+            if (interactable != null)
+            {
+                if (interactable.CanInteract)
+                    interactionText.text = $"Press  <sprite name=ml>  to {interactable.InteractionText}";
+                else
+                {
+                    var message = interactable.CantInteractMessage;
+                    if (!message.IsEmpty())
+                        interactionText.text = message;
+                }
+            }
             
             _currentInteractable = interactable;
             _currentTrigger = trigger;
@@ -75,16 +79,13 @@ namespace Interaction
 
             if (interactable == null)
                 return null;
-            
-            if (!interactable.CanInteract)
-                return null;
 
             return interactable;
         }
 
         private void HandleInteractionInput()
         {
-            if (Input.GetMouseButtonDown(0) && _currentInteractable != null)
+            if (Input.GetMouseButtonDown(0) && _currentInteractable != null && _currentInteractable.CanInteract)
             {
                 _currentInteractable.Interact();
             }

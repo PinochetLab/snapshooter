@@ -1,32 +1,19 @@
-﻿using Player;
+﻿using Players;
 using Snap;
 using UnityEngine;
 using Zenject;
 
 namespace View
 {
-    public class SnapViewer : MonoBehaviour
+    public class SnapViewer : Body
     {
         [SerializeField] private Camera snapCamera;
-        [SerializeField] private Transform bodyTransform;
-        [SerializeField] private Transform headTransform;
         
         [SerializeField] private Tolerance tolerance;
 
-        [Inject] private PlayerMoveController _playerMc;
+        [Inject] private Player _playerMc;
 
         private ViewTransform _startVt, _endVt;
-
-        private ViewTransform ViewTransform
-        {
-            get
-            {
-                var position = bodyTransform.position;
-                var yaw = bodyTransform.eulerAngles.y;
-                var pitch = headTransform.eulerAngles.x;
-                return new ViewTransform(position, yaw, pitch);
-            }
-        }
 
         public bool IsMatched()
         {

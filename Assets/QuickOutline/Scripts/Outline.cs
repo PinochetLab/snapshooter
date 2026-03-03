@@ -5,7 +5,6 @@
 //  Created by Chris Nolet on 3/30/18.
 //  Copyright © 2018 Chris Nolet. All rights reserved.
 //
-//  Modified to add OutlineFullVisible mode - shows outline on all visible parts including intersections
 
 using System;
 using System.Collections.Generic;
@@ -13,6 +12,7 @@ using System.Linq;
 using UnityEngine;
 
 [DisallowMultipleComponent]
+
 public class Outline : MonoBehaviour {
   private static HashSet<Mesh> registeredMeshes = new HashSet<Mesh>();
 
@@ -21,8 +21,7 @@ public class Outline : MonoBehaviour {
     OutlineVisible,
     OutlineHidden,
     OutlineAndSilhouette,
-    SilhouetteOnly,
-    OutlineFullVisible  // Новый режим
+    SilhouetteOnly
   }
 
   public Mode OutlineMode {
@@ -75,12 +74,9 @@ public class Outline : MonoBehaviour {
   [SerializeField, HideInInspector]
   private List<ListVector3> bakeValues = new List<ListVector3>();
 
-  // Дополнительные материалы для нового режима
+  private Renderer[] renderers;
   private Material outlineMaskMaterial;
   private Material outlineFillMaterial;
-  private Material outlineFullVisibleMaterial;  // Новый материал для полной видимости
-  
-  private Renderer[] renderers;
 
   private bool needsUpdate;
 
@@ -92,10 +88,6 @@ public class Outline : MonoBehaviour {
     // Instantiate outline materials
     outlineMaskMaterial = Instantiate(Resources.Load<Material>(@"Materials/OutlineMask"));
     outlineFillMaterial = Instantiate(Resources.Load<Material>(@"Materials/OutlineFill"));
-    
-    // Создаем дополнительный материал для режима FullVisible
-    outlineFullVisibleMaterial = Instantiate(outlineFillMaterial);
-    outlineFullVisibleMaterial.name = "OutlineFullVisible (Instance)";
 
     outlineMaskMaterial.name = "OutlineMask (Instance)";
     outlineFillMaterial.name = "OutlineFill (Instance)";
@@ -115,9 +107,6 @@ public class Outline : MonoBehaviour {
 
       materials.Add(outlineMaskMaterial);
       materials.Add(outlineFillMaterial);
-      
-      // Добавляем третий материал для нового режима (но он будет использоваться только при необходимости)
-      materials.Add(outlineFullVisibleMaterial);
 
       renderer.materials = materials.ToArray();
     }
@@ -156,7 +145,6 @@ public class Outline : MonoBehaviour {
 
       materials.Remove(outlineMaskMaterial);
       materials.Remove(outlineFillMaterial);
-      materials.Remove(outlineFullVisibleMaterial);
 
       renderer.materials = materials.ToArray();
     }
@@ -167,7 +155,6 @@ public class Outline : MonoBehaviour {
     // Destroy material instances
     Destroy(outlineMaskMaterial);
     Destroy(outlineFillMaterial);
-    Destroy(outlineFullVisibleMaterial);
   }
 
   void Bake() {
@@ -286,70 +273,36 @@ public class Outline : MonoBehaviour {
 
     // Apply properties according to mode
     outlineFillMaterial.SetColor("_OutlineColor", outlineColor);
-    outlineFullVisibleMaterial.SetColor("_OutlineColor", outlineColor);
 
     switch (outlineMode) {
       case Mode.OutlineAll:
         outlineMaskMaterial.SetFloat("_ZTest", (float)UnityEngine.Rendering.CompareFunction.Always);
         outlineFillMaterial.SetFloat("_ZTest", (float)UnityEngine.Rendering.CompareFunction.Always);
         outlineFillMaterial.SetFloat("_OutlineWidth", outlineWidth);
-        
-        // Отключаем дополнительный материал
-        outlineFullVisibleMaterial.SetFloat("_OutlineWidth", 0f);
         break;
 
       case Mode.OutlineVisible:
         outlineMaskMaterial.SetFloat("_ZTest", (float)UnityEngine.Rendering.CompareFunction.Always);
         outlineFillMaterial.SetFloat("_ZTest", (float)UnityEngine.Rendering.CompareFunction.LessEqual);
         outlineFillMaterial.SetFloat("_OutlineWidth", outlineWidth);
-        
-        outlineFullVisibleMaterial.SetFloat("_OutlineWidth", 0f);
         break;
 
       case Mode.OutlineHidden:
         outlineMaskMaterial.SetFloat("_ZTest", (float)UnityEngine.Rendering.CompareFunction.Always);
         outlineFillMaterial.SetFloat("_ZTest", (float)UnityEngine.Rendering.CompareFunction.Greater);
         outlineFillMaterial.SetFloat("_OutlineWidth", outlineWidth);
-        
-        outlineFullVisibleMaterial.SetFloat("_OutlineWidth", 0f);
         break;
 
       case Mode.OutlineAndSilhouette:
         outlineMaskMaterial.SetFloat("_ZTest", (float)UnityEngine.Rendering.CompareFunction.LessEqual);
         outlineFillMaterial.SetFloat("_ZTest", (float)UnityEngine.Rendering.CompareFunction.Always);
         outlineFillMaterial.SetFloat("_OutlineWidth", outlineWidth);
-        
-        outlineFullVisibleMaterial.SetFloat("_OutlineWidth", 0f);
         break;
 
       case Mode.SilhouetteOnly:
         outlineMaskMaterial.SetFloat("_ZTest", (float)UnityEngine.Rendering.CompareFunction.LessEqual);
         outlineFillMaterial.SetFloat("_ZTest", (float)UnityEngine.Rendering.CompareFunction.Greater);
         outlineFillMaterial.SetFloat("_OutlineWidth", 0f);
-        
-        outlineFullVisibleMaterial.SetFloat("_OutlineWidth", 0f);
-        break;
-        
-      case Mode.OutlineFullVisible:
-        // НОВЫЙ РЕЖИМ: Подсвечиваем все видимые части, включая пересечения
-        // Используем два прохода: один с ZTest LessEqual для передних частей,
-        // и второй с ZTest Greater для частей за другими объектами
-        
-        outlineMaskMaterial.SetFloat("_ZTest", (float)UnityEngine.Rendering.CompareFunction.Always);
-        
-        // Первый проход - для передних частей (обычный ZTest)
-        outlineFillMaterial.SetFloat("_ZTest", (float)UnityEngine.Rendering.CompareFunction.LessEqual);
-        outlineFillMaterial.SetFloat("_OutlineWidth", outlineWidth);
-        
-        // Второй проход - для частей за другими объектами
-        // Рисуем их поверх с прозрачностью или тем же цветом
-        outlineFullVisibleMaterial.SetFloat("_ZTest", (float)UnityEngine.Rendering.CompareFunction.Greater);
-        outlineFullVisibleMaterial.SetFloat("_OutlineWidth", outlineWidth);
-        
-        // Можно добавить эффект полупрозрачности для частей за объектами
-        // Color fadedColor = outlineColor;
-        // fadedColor.a *= 0.7f; // Немного прозрачнее
-        // outlineFullVisibleMaterial.SetColor("_OutlineColor", fadedColor);
         break;
     }
   }

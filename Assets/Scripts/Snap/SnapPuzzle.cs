@@ -5,6 +5,7 @@ using System.Linq;
 using Snapshots;
 using SnapshotUI;
 using UnityEngine;
+using UnityEngine.Serialization;
 using View;
 using Zenject;
 
@@ -20,7 +21,7 @@ namespace Snap
 
         [SerializeField] private List<GameObject> matchables;
 
-        [SerializeField] private SnapshotPickup snapshotPickup;
+        [FormerlySerializedAs("snapshotPickup")] [SerializeField] private SnapshotPickable snapshotPickable;
 
         [SerializeField] private bool isRoot;
 
@@ -93,13 +94,13 @@ namespace Snap
 
         private IEnumerator Capture()
         {
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(1f);
             
             var sprite = snapViewer.TakePicture();
             
             _snapshot = new Snapshot(sprite);
             
-            snapshotPickup.SetSnapshot(_snapshot);
+            snapshotPickable.SetSnapshot(_snapshot);
 
             foreach (var childPuzzle in childPuzzles)
             {

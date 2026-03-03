@@ -6,14 +6,8 @@ namespace Interaction
     public class InteractionTrigger : MonoBehaviour
     {
         [SerializeField] private GameObject interactable;
-        [SerializeField] private Outline outline;
 
         private IInteractable _interactable;
-
-        private void Awake()
-        {
-            outline.enabled = false;
-        }
 
         public IInteractable Interactable
         {
@@ -23,7 +17,5 @@ namespace Interaction
                 return _interactable;
             }
         }
-        
-        public Outline Outline => outline;
     }
 }
