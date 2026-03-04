@@ -4,6 +4,7 @@ namespace View
 {
     public class Body : MonoBehaviour
     {
+        [SerializeField] private Transform pivotTransform;
         [SerializeField] private Transform bodyTransform;
         [SerializeField] private Transform headTransform;
         
@@ -11,14 +12,14 @@ namespace View
         {
             get
             {
-                var position = bodyTransform.position;
+                var position = pivotTransform.position;
                 var yaw = bodyTransform.eulerAngles.y;
                 var pitch = headTransform.localEulerAngles.x;
                 return new ViewTransform(position, yaw, pitch);
             }
             set
             {
-                bodyTransform.position = value.Position;
+                pivotTransform.position = value.Position;
                 bodyTransform.eulerAngles = Vector3.up * value.Yaw;
                 headTransform.localEulerAngles = Vector3.right * value.Pitch;
             }

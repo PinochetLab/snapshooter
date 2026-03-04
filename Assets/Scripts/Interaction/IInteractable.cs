@@ -5,7 +5,7 @@ namespace Interaction
     public interface IInteractable
     {
         bool CanInteract => true;
-        string CantInteractMessage => "";
+        string CantInteractText => "";
         string InteractionText { get; }
         void Interact();
     }

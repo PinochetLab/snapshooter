@@ -78,8 +78,11 @@ namespace Players
 
         private void SetPhysics(bool value)
         {
+            if (!value)
+                rb.linearVelocity = Vector3.zero;
             rb.isKinematic = !value;
-            playerCollider.isTrigger = !value;
+            rb.interpolation = value ? RigidbodyInterpolation.Interpolate : RigidbodyInterpolation.None;
+            playerCollider.enabled = value;
         }
 
         public void DisableMotion()

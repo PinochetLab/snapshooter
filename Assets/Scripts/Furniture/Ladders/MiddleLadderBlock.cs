@@ -4,9 +4,10 @@ using View;
 
 namespace Furniture.Ladders
 {
-    public class TopLadderBlock : MonoBehaviour, IInteractable
+    public class MiddleLadderBlock : MonoBehaviour, IInteractable
     {
         [SerializeField] private Body enterBody;
+        [SerializeField] private Body bottomBody;
         [SerializeField] private Body exitBody;
         
         public Ladder Ladder { private get; set; }
@@ -22,16 +23,9 @@ namespace Furniture.Ladders
             Ladder.Enter(enterBody);
         }
 
-        public Vector3 Limit(Vector3 position)
-        {
-            if (position.y > ExitY + Ladder.ExitGap / 2)
-                position.y = ExitY + Ladder.ExitGap / 2;
-            return position;
-        }
-
         public bool CanExit(Vector3 position)
         {
-            return position.y > ExitY - Ladder.ExitGap / 2;
+            return position.y > bottomBody.ViewTransform.Position.y && position.y < ExitY + Ladder.ExitGap;
         }
     }
 }

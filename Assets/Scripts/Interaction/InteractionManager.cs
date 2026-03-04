@@ -1,6 +1,7 @@
-﻿using ModestTree;
-using TMPro;
+﻿using Furniture.Ladders;
+using ModestTree;
 using UnityEngine;
+using Zenject;
 
 namespace Interaction
 {
@@ -9,11 +10,14 @@ namespace Interaction
         [SerializeField] private Transform lookTransform;
         [SerializeField] private float interactionDistance = 3f;
         [SerializeField] private LayerMask interactionLayerMask = -1;
-        [SerializeField] private TMP_Text interactionText;
         [SerializeField] private float maxDistance = 1f;
+        [SerializeField] private LayerMask ladderLayerMask;
+        
+        [Inject] private InteractionText _interactionText;
     
         private IInteractable _currentInteractable;
         private InteractionTrigger _currentTrigger;
+        public bool CanInteract { get; set; } = true;
     
         private void Update()
         {
@@ -25,17 +29,21 @@ namespace Interaction
         {
             var trigger = GetInteractionTrigger();
             var interactable = trigger ? trigger.Interactable : null;
-            interactionText.gameObject.SetActive(interactable != null);
 
-            if (interactable != null)
+            if (CanInteract)
             {
-                if (interactable.CanInteract)
-                    interactionText.text = $"Press  <sprite name=ml>  to {interactable.InteractionText}";
-                else
+                _interactionText.SetActive(interactable != null);
+                
+                if (interactable != null)
                 {
-                    var message = interactable.CantInteractMessage;
-                    if (!message.IsEmpty())
-                        interactionText.text = message;
+                    if (interactable.CanInteract)
+                        _interactionText.SetActionText(interactable.InteractionText);
+                    else
+                    {
+                        var text = interactable.CantInteractText;
+                        if (!text.IsEmpty())
+                            _interactionText.SetText(text);
+                    }
                 }
             }
             
@@ -58,37 +66,34 @@ namespace Interaction
             return trigger;
         }
 
-        private IInteractable GetInteractable()
+        private void HandleInteractionInput()
+        {
+            if (!CanInteract)
+                return;
+
+            if (Input.GetMouseButtonDown(0) & _currentInteractable != null && _currentInteractable.CanInteract)
+                _currentInteractable.Interact();
+        }
+
+        public bool LookAtLadder(Ladder ladder)
         {
             var ray = new Ray(lookTransform.position, lookTransform.forward);
 
-            if (!Physics.Raycast(ray, out var hit, interactionDistance, interactionLayerMask))
-                return null;
+            if (!Physics.Raycast(ray, out var hit, interactionDistance, ladderLayerMask))
+                return false;
+            
+            var ladderCollider = hit.collider.GetComponent<LadderCollider>();
 
             if (hit.distance > maxDistance)
-                return null;
-            
-            var interactable = hit.collider.GetComponent<IInteractable>();
-            
-            if (interactable == null)
-            {
-                var interactivePart =  hit.collider.GetComponent<InteractionTrigger>();
-                if (interactivePart)
-                    interactable = interactivePart.Interactable;
-            }
+                return false;
 
-            if (interactable == null)
-                return null;
+            if (!ladderCollider)
+                return false;
 
-            return interactable;
-        }
+            if (ladderCollider.Ladder != ladder)
+                return false;
 
-        private void HandleInteractionInput()
-        {
-            if (Input.GetMouseButtonDown(0) && _currentInteractable != null && _currentInteractable.CanInteract)
-            {
-                _currentInteractable.Interact();
-            }
+            return true;
         }
     }
 

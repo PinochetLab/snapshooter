@@ -4,8 +4,6 @@ namespace View
 {
     public record ViewTransform(Vector3 Position, float Yaw, float Pitch)
     {
-        private const float MaxSpeed = 0.1f;
-        private const float MaxAngularSpeed = 0.7f;
         public Vector3 Position { get; set; } = Position;
         public float Yaw { get; set; } = Yaw;
         public float Pitch { get; set; } = Pitch;
@@ -31,10 +29,10 @@ namespace View
                    && Quaternion.Angle(a.Rotation, b.Rotation) <= tolerance.Angle;
         }
 
-        public static float TimeDifference(ViewTransform a, ViewTransform b)
+        public static float TimeDifference(ViewTransform a, ViewTransform b, ViewTransformSpeed vtSpeed)
         {
-            var posTime = Vector3.Distance(a.Position, b.Position) / MaxSpeed;
-            var angTime = Quaternion.Angle(a.Rotation, b.Rotation) / MaxAngularSpeed;
+            var posTime = Vector3.Distance(a.Position, b.Position) / vtSpeed.Speed;
+            var angTime = Quaternion.Angle(a.Rotation, b.Rotation) / vtSpeed.AngularSpeed;
             return Mathf.Max(posTime, angTime);
         }
     }

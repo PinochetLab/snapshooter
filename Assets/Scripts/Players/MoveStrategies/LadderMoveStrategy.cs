@@ -1,3 +1,4 @@
+using Furniture.Ladders;
 using UnityEngine;
 
 namespace Players.MoveStrategies
@@ -6,11 +7,18 @@ namespace Players.MoveStrategies
     {
         private float _ver;
         private Vector2 _lookInput;
+
+        private Ladder _ladder;
         
         private float _yaw;
         private float _pitch;
         private Vector3 _currentVelocity;
         private Vector3 _targetVelocity;
+
+        public LadderMoveStrategy(Ladder ladder)
+        {
+            _ladder = ladder;
+        }
 
         protected override void Init()
         {
@@ -49,7 +57,9 @@ namespace Players.MoveStrategies
         private void ApplyMovement()
         {
             var viewTransform = Player.ViewTransform;
-            viewTransform.Position += Vector3.up * (_ver * Player.LadderSpeed * Time.fixedDeltaTime);
+            var position = viewTransform.Position;
+            position += Vector3.up * (_ver * Player.LadderSpeed * Time.fixedDeltaTime);
+            viewTransform.Position = _ladder.Limit(position);
             Player.ViewTransform = viewTransform;
         }
 

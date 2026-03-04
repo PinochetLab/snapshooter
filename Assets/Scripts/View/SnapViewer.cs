@@ -22,7 +22,7 @@ namespace View
 
         public float GetTime()
         {
-            return ViewTransform.TimeDifference(_playerMc.ViewTransform, ViewTransform);
+            return ViewTransform.TimeDifference(_playerMc.ViewTransform, ViewTransform, ViewTransformSpeed.Snap);
         }
 
         private Texture2D TakePictureTexture()

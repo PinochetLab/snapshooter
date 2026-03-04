@@ -27,7 +27,7 @@ namespace Locks
             _lockable = lockableGameObject.GetComponent<ILockable>();
         }
 
-        public string CantInteractMessage
+        public string CantInteractText
         {
             get
             {
