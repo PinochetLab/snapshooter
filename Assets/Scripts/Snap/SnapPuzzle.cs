@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Snap.Matchables;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +15,9 @@ namespace Snap
     {
         [SerializeField] private SnapViewer snapViewer;
         
-        [SerializeField] private List<GameObject> objectsToShow;
+        [SerializeField] private List<GameObject> appearingObjects;
+        
+        [SerializeField] private List<GameObject> disappearingObjects;
         
         [SerializeField] private List<GameObject> objectsToHide;
 
@@ -36,6 +38,8 @@ namespace Snap
         private Snapshot _snapshot;
         private bool _parentSolved;
         private List<IMatchable> _matchables;
+        private List<IAlignedMatchable> _alignedMatchables;
+        private List<bool> _lastActive;
 
         private void SolveParent()
         {
@@ -45,6 +49,11 @@ namespace Snap
         private void Init()
         {
             _matchables = matchables.Select(go => go.GetComponent<IMatchable>()).ToList();
+            _alignedMatchables = matchables
+                .Select(go => go.GetComponent<IAlignedMatchable>())
+                .Where(component => component != null)
+                .ToList();
+            _lastActive = objectsToHide.Select(o => o.activeSelf).ToList();
         }
 
         private void Update()
@@ -73,47 +82,56 @@ namespace Snap
         private void Start()
         {
             if (isRoot)
-                StartCoroutine(ProcessCapture());
+                StartCoroutine(Capture(true));
         }
 
         private void PreCapture()
         {
-            objectsToShow.ForEach(o => o.SetActive(true));
+            appearingObjects.ForEach(o => o.SetActive(true));
+            disappearingObjects.ForEach(o => o.SetActive(false));
             objectsToHide.ForEach(o => o.SetActive(false));
             
-            childPuzzles.ForEach(child => child.PreCapture());
+            _matchables.ForEach(m => m.Prepare());
         }
 
         private void PostCapture()
         {
-            objectsToShow.ForEach(o => o.SetActive(false));
-            objectsToHide.ForEach(o => o.SetActive(true));
+            appearingObjects.ForEach(o => o.SetActive(false));
+            disappearingObjects.ForEach(o => o.SetActive(true));
+
+            for (var i = 0; i < objectsToHide.Count; i++)
+            {
+                objectsToHide[i].SetActive(_lastActive[i]);
+            }
             
-            childPuzzles.ForEach(child => child.PostCapture());
+            _matchables.ForEach(m => m.RollBack());
         }
 
-        private IEnumerator Capture()
+        private IEnumerator Capture(bool wait = false)
         {
-            yield return new WaitForSeconds(1f);
+            Init();
             
-            var sprite = snapViewer.TakePicture();
+            if (wait)
+                yield return new WaitForSeconds(0.5f);
             
-            _snapshot = new Snapshot(sprite);
+            PreCapture();
             
-            snapshotPickable.SetSnapshot(_snapshot);
-
             foreach (var childPuzzle in childPuzzles)
             {
                 yield return childPuzzle.Capture();
             }
-        }
-
-        private IEnumerator ProcessCapture()
-        {
-            Init();
+            
             PreCapture();
-            yield return Capture();
+            
+            yield return new WaitForEndOfFrame();
+            
+            var sprite = snapViewer.TakePicture();
+            
             PostCapture();
+            
+            _snapshot = new Snapshot(sprite);
+            
+            snapshotPickable.SetSnapshot(_snapshot);
         }
 
         private void StartAlign()
@@ -121,19 +139,19 @@ namespace Snap
             _duration = snapViewer.GetTime();
             _time = 0;
             snapViewer.BeforeAlign();
-            _matchables.ForEach(mt => mt.BeforeAlign());
+            _alignedMatchables.ForEach(mt => mt.BeforeAlign());
         }
 
         private void EndAlign()
         {
             _aligned = true;
             snapViewer.AfterAlign();
-            _matchables.ForEach(mt => mt.AfterAlign());
+            _alignedMatchables.ForEach(mt => mt.AfterAlign());
+            
+            appearingObjects.ForEach(o => o.SetActive(true));
+            disappearingObjects.ForEach(o => o.SetActive(false));
             
             _snapshotHand.EndAlign();
-            
-            objectsToShow.ForEach(o => o.SetActive(true));
-            objectsToHide.ForEach(o => o.SetActive(false));
 
             foreach (var childPuzzle in childPuzzles)
             {
@@ -151,6 +169,7 @@ namespace Snap
             }
             var t = _time / _duration;
             snapViewer.ProgressAlign(t);
+            _alignedMatchables.ForEach(mt => mt.ProgressAlign(t));
         }
     }
 }

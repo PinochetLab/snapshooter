@@ -476,6 +476,7 @@ MonoBehaviour:
   pivotTransform: {fileID: 3741092533348469319}
   bodyTransform: {fileID: 701721370848062996}
   headTransform: {fileID: 4225482805553296695}
+  viewCamera: {fileID: 6387629533485731049}
 --- !u!1 &3841578389632401613
 GameObject:
   m_ObjectHideFlags: 0
@@ -688,3 +689,4 @@ MonoBehaviour:
   pivotTransform: {fileID: 5839500076455916836}
   bodyTransform: {fileID: 8796023975843365005}
   headTransform: {fileID: 7977848547222623567}
+  viewCamera: {fileID: 3200164308434610782}

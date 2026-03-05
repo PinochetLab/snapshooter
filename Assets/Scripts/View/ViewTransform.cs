@@ -25,6 +25,8 @@ namespace View
 
         public static bool AreMatched(ViewTransform a, ViewTransform b, Tolerance tolerance)
         {
+            /*Debug.Log($"Distance: {Vector3.Distance(a.Position, b.Position)} / {tolerance.Distance}");
+            Debug.Log($"Angle: {Quaternion.Angle(a.Rotation, b.Rotation)} / {tolerance.Angle}");*/
             return Vector3.Distance(a.Position, b.Position) <= tolerance.Distance
                    && Quaternion.Angle(a.Rotation, b.Rotation) <= tolerance.Angle;
         }

@@ -11,7 +11,8 @@ namespace Players
         [SerializeField] private Collider playerCollider;
         
         [Header("Movement Settings")]
-        [SerializeField] private float walkSpeed = 5f;
+        [SerializeField] private float walkSpeed = 2f;
+        [SerializeField] private float runSpeed = 4f;
         [SerializeField] private float acceleration = 10f;
         
         [Header("Ladder Settings")]
@@ -20,16 +21,22 @@ namespace Players
         [Header("Look Settings")]
         [SerializeField] private float lookSensitivity = 100f;
         [SerializeField] private float maxLookAngle = 80f;
+        
+        [SerializeField] private float maxZoomCoef = 3f;
 
         private AbstractMoveStrategy _moveStrategy;
         
         private bool _isControlled = true;
         
         public float WalkSpeed => walkSpeed;
+        public float RunSpeed => runSpeed;
         public float Acceleration => acceleration;
         public float LookSensitivity => lookSensitivity;
         public float MaxLookAngle => maxLookAngle;
         public float LadderSpeed => ladderSpeed;
+
+        public bool IsZoom { get; private set; }
+        public float ZoomCoef => IsZoom ? maxZoomCoef : 1f;
         
         public Rigidbody Rigidbody => rb;
 
@@ -60,6 +67,16 @@ namespace Players
             _moveStrategy.FixedUpdate();
         }
 
+        public void StartZoom()
+        {
+            IsZoom = true;
+        }
+        
+        public void EndZoom()
+        {
+            IsZoom = false;
+        }
+
         public void SetStrategy(AbstractMoveStrategy moveStrategy)
         {
             _moveStrategy = moveStrategy;
@@ -75,6 +92,8 @@ namespace Players
         {
             SetPhysics(false);
         }
+        
+        
 
         private void SetPhysics(bool value)
         {

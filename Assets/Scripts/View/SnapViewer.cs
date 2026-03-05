@@ -7,8 +7,6 @@ namespace View
 {
     public class SnapViewer : Body
     {
-        [SerializeField] private Camera snapCamera;
-        
         [SerializeField] private Tolerance tolerance;
 
         [Inject] private Player _playerMc;
@@ -27,9 +25,10 @@ namespace View
 
         private Texture2D TakePictureTexture()
         {
-            var renderTexture = snapCamera.targetTexture;
-            snapCamera.targetTexture = renderTexture;
-            snapCamera.Render();
+            viewCamera.enabled = true;
+            var renderTexture = viewCamera.targetTexture;
+            viewCamera.targetTexture = renderTexture;
+            viewCamera.Render();
             RenderTexture.active = renderTexture;
             var size = SnapMaster.SnapshotSize;
             var texture = new Texture2D(size, size, TextureFormat.RGBA32, false, true);
@@ -38,6 +37,7 @@ namespace View
             texture.ReadPixels(new Rect(srcX, srcY, size, size), 
                 0, 0);
             texture.Apply();
+            viewCamera.enabled = false;
             return texture;
         }
 
@@ -67,7 +67,12 @@ namespace View
 
         public void ProgressAlign(float t)
         {
-            _playerMc.ViewTransform = ViewTransform.Lerp(_startVt, _endVt, t);
+            var a = ViewTransform.Lerp(_startVt, _endVt, t);
+            _playerMc.ViewTransform = a;
+            /*Debug.Log($"_startVt: {_startVt.Position} {_startVt.Yaw} {_startVt.Pitch}");
+            Debug.Log($"_endVt: {_endVt.Position} {_endVt.Yaw} {_endVt.Pitch}");
+            Debug.Log($"t: {t}");
+            Debug.Log($"_playerMc.ViewTransform: {_playerMc.ViewTransform.Position} {_playerMc.ViewTransform.Yaw} {_playerMc.ViewTransform.Pitch}");*/
         }
     }
 }

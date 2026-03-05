@@ -6,6 +6,7 @@ namespace Players.MoveStrategies
     {
         private Vector2 _moveInput;
         private Vector2 _lookInput;
+        private bool _run;
         
         private float _yaw;
         private float _pitch;
@@ -30,6 +31,8 @@ namespace Players.MoveStrategies
                 Input.GetAxisRaw("Mouse X"),
                 -Input.GetAxisRaw("Mouse Y")
             );
+            
+            _run = Input.GetKey(KeyCode.LeftShift);
         }
 
         public override void Update()
@@ -39,8 +42,9 @@ namespace Players.MoveStrategies
         
         private void ApplyRotation()
         {
-            _yaw += _lookInput.x * Player.LookSensitivity * Time.deltaTime;
-            _pitch += _lookInput.y * Player.LookSensitivity * Time.deltaTime;
+            _yaw += _lookInput.x * Player.LookSensitivity * Time.deltaTime / Player.ZoomCoef;
+            _pitch += _lookInput.y * Player.LookSensitivity * Time.deltaTime / Player.ZoomCoef;
+            _pitch = Mathf.DeltaAngle(0f, _pitch);
             _pitch = Mathf.Clamp(_pitch, -Player.MaxLookAngle, Player.MaxLookAngle);
             var viewTransform = Player.ViewTransform;
             viewTransform.Yaw = _yaw;
@@ -56,7 +60,7 @@ namespace Players.MoveStrategies
         private void ApplyMovement()
         {
             var moveDirection = (Player.Forward * _moveInput.y + Player.Right * _moveInput.x).normalized;
-            _targetVelocity = moveDirection * Player.WalkSpeed;
+            _targetVelocity = moveDirection * ((_run && !Player.IsZoom) ? Player.RunSpeed : Player.WalkSpeed) / Player.ZoomCoef;
             
             _targetVelocity.y = Player.Rigidbody.linearVelocity.y;
             

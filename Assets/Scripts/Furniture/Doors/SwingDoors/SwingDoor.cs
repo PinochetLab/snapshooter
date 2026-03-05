@@ -30,6 +30,8 @@ namespace Furniture.Doors.SwingDoors
         
         [Inject] private Player _player;
 
+        private const float ShakeDuration = 0.4f;
+
         private SwingDoorState _currentState;
         private SwingDoorState _lastState;
         private float _angle;
@@ -38,6 +40,8 @@ namespace Furniture.Doors.SwingDoors
         private bool _canInteract;
         private ILock _lock;
         private bool _locked;
+        private bool _isShaking;
+        private float _shakeTime;
 
         private void Awake()
         {
@@ -93,6 +97,21 @@ namespace Furniture.Doors.SwingDoors
             swingDoorCollider.EndMove();
         }
 
+        private void StartShake()
+        {
+            _isMoving = true;
+            _isShaking = true;
+            _shakeTime = 0;
+        }
+        
+        private void EndShake()
+        {
+            _angle = 0;
+            _isMoving = false;
+            _isShaking = false;
+            _shakeTime = 0;
+        }
+
         private void Update()
         {
             Move();
@@ -102,6 +121,19 @@ namespace Furniture.Doors.SwingDoors
         {
             if (!_isMoving)
                 return;
+            if (_isShaking)
+            {
+                _shakeTime += Time.deltaTime;
+                if (_shakeTime > ShakeDuration)
+                {
+                    EndShake();
+                    return;
+                }
+                var x = _shakeTime / ShakeDuration;
+                _angle = 3 * Mathf.Cos(4.5f * Mathf.PI * x) * (2 / (x + 1) - 1);
+                SetAngle(_angle);
+                return;
+            }
             _angle = Mathf.MoveTowards(_angle, _targetAngle, angularSpeed * Time.deltaTime);
             SetAngle(_angle);
             if (Mathf.Approximately(_angle, _targetAngle))
@@ -154,6 +186,7 @@ namespace Furniture.Doors.SwingDoors
             }
             else
             {
+                StartShake();
                 _lock.ShowLocked();
             }
         }

@@ -46,6 +46,8 @@ namespace Interaction
                     }
                 }
             }
+            else
+                _interactionText.SetActive(false);
             
             _currentInteractable = interactable;
             _currentTrigger = trigger;

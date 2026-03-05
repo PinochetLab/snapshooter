@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace View
@@ -7,7 +8,13 @@ namespace View
         [SerializeField] private Transform pivotTransform;
         [SerializeField] private Transform bodyTransform;
         [SerializeField] private Transform headTransform;
-        
+        [SerializeField] protected Camera viewCamera;
+
+        private void Awake()
+        {
+            viewCamera.enabled = false;
+        }
+
         public ViewTransform ViewTransform
         {
             get

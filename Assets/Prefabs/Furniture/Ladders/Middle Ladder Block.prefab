@@ -283,6 +283,7 @@ MonoBehaviour:
   pivotTransform: {fileID: 441436049516101446}
   bodyTransform: {fileID: 4990551690542909705}
   headTransform: {fileID: 2755305682994060132}
+  viewCamera: {fileID: 5513543142542018025}
 --- !u!1 &2606860513795515650
 GameObject:
   m_ObjectHideFlags: 0
@@ -643,6 +644,7 @@ MonoBehaviour:
   pivotTransform: {fileID: 2526892909802049401}
   bodyTransform: {fileID: 3674095436692509646}
   headTransform: {fileID: 8036999498217552106}
+  viewCamera: {fileID: 558838090313192870}
 --- !u!1 &4889468207529101746
 GameObject:
   m_ObjectHideFlags: 0
@@ -715,6 +717,7 @@ MonoBehaviour:
   pivotTransform: {fileID: 7049937637273908042}
   bodyTransform: {fileID: 3380486064407640745}
   headTransform: {fileID: 5737452234031813760}
+  viewCamera: {fileID: 3507297050857611575}
 --- !u!1 &5611535185859078974
 GameObject:
   m_ObjectHideFlags: 0

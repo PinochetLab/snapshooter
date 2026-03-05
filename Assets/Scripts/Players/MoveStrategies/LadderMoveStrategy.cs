@@ -45,8 +45,8 @@ namespace Players.MoveStrategies
         
         private void ApplyRotation()
         {
-            _yaw += _lookInput.x * Player.LookSensitivity * Time.deltaTime;
-            _pitch += _lookInput.y * Player.LookSensitivity * Time.deltaTime;
+            _yaw += _lookInput.x * Player.LookSensitivity * Time.deltaTime / Player.ZoomCoef;
+            _pitch += _lookInput.y * Player.LookSensitivity * Time.deltaTime / Player.ZoomCoef;
             _pitch = Mathf.Clamp(_pitch, -Player.MaxLookAngle, Player.MaxLookAngle);
             var viewTransform = Player.ViewTransform;
             viewTransform.Yaw = _yaw;
@@ -58,7 +58,7 @@ namespace Players.MoveStrategies
         {
             var viewTransform = Player.ViewTransform;
             var position = viewTransform.Position;
-            position += Vector3.up * (_ver * Player.LadderSpeed * Time.fixedDeltaTime);
+            position += Vector3.up * (_ver * Player.LadderSpeed * Time.fixedDeltaTime / Player.ZoomCoef);
             viewTransform.Position = _ladder.Limit(position);
             Player.ViewTransform = viewTransform;
         }

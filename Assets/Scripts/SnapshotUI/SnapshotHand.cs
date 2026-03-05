@@ -1,7 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Players;
 using Snapshots;
 using UnityEngine;
+using Zenject;
 using Random = UnityEngine.Random;
 
 namespace SnapshotUI
@@ -21,6 +23,8 @@ namespace SnapshotUI
         [SerializeField] private float scaleSpeed = 6000;
 
         [SerializeField] private float topPositionY = 500;
+
+        [Inject] private Player _player;
 
         private bool _isMoving;
         private bool _isBig;
@@ -100,6 +104,7 @@ namespace SnapshotUI
             _snapshotCards.Remove(card);
             card.Destroy();
 
+            _player.EndZoom();
             _isBig = false;
 
             var snapshotTransforms = CalculateSnapshotTransforms(_snapshotCards.Count);
@@ -163,7 +168,7 @@ namespace SnapshotUI
                 moves.Add(StartCoroutine(_snapshotCards[i].MoveTo(target, moveSpeed)));
             }
 
-            moves.Add(StartCoroutine(_snapshotCards[_snapshotCards.Count - 1].MoveToWithFlip(TopTransform, firstTransform, scrollSpeed, true)));
+            moves.Add(StartCoroutine(_snapshotCards[^1].MoveToWithFlip(TopTransform, firstTransform, scrollSpeed, true)));
 
             foreach (var move in moves)
             {
@@ -177,46 +182,47 @@ namespace SnapshotUI
             _isMoving = false;
         }
 
-        private IEnumerator ShowHideSnapshot()
+        private IEnumerator Show()
         {
+            _player.StartZoom();
             _isMoving = true;
-            if (!_isBig)
-            {
-                _lastTransform = _snapshotCards[^1].SnapshotTransform;
-                var targetAngle = activeSnapshotCardRtExample.localEulerAngles.z;
-                var targetSize = activeSnapshotCardRtExample.sizeDelta.x;
-                var targetOffset = new Vector2(
-                    (float)Screen.width / 2 - snapshotCardRoot.anchoredPosition.x,
-                    (Screen.height - targetSize) / 2 - snapshotCardRoot.anchoredPosition.y);
-                var targetTransform = new SnapshotTransform(targetAngle, targetOffset, targetSize);
-                yield return _snapshotCards[^1].MoveTo(targetTransform, scaleSpeed);
-                _isBig = true;
-            }
-            else
-            {
-                _isBig = false;
-                yield return _snapshotCards[^1].MoveTo(_lastTransform, scaleSpeed);
-            }
-
+            _lastTransform = _snapshotCards[^1].SnapshotTransform;
+            var targetAngle = activeSnapshotCardRtExample.localEulerAngles.z;
+            var targetSize = activeSnapshotCardRtExample.sizeDelta.x;
+            var targetOffset = new Vector2(
+                (float)Screen.width / 2 - snapshotCardRoot.anchoredPosition.x,
+                (Screen.height - targetSize) / 2 - snapshotCardRoot.anchoredPosition.y);
+            var targetTransform = new SnapshotTransform(targetAngle, targetOffset, targetSize);
+            yield return _snapshotCards[^1].MoveTo(targetTransform, scaleSpeed);
+            _isBig = true;
             _isMoving = false;
         }
 
-        private bool IsScrollForard()
+        private IEnumerator Hide()
+        {
+            _player.EndZoom();
+            _isMoving = true;
+            _isBig = false;
+            yield return _snapshotCards[^1].MoveTo(_lastTransform, scaleSpeed);
+            _isMoving = false;
+        }
+
+        private static bool IsScrollForward()
         {
             return Input.GetKeyDown(KeyCode.E) || Input.mouseScrollDelta.y < 0;
         }
         
-        private bool IsScrollBack()
+        private static bool IsScrollBack()
         {
             return Input.GetKeyDown(KeyCode.Q) || Input.mouseScrollDelta.y > 0;
         }
 
-        private bool IsShow()
+        private static bool ShowPressed()
         {
             return Input.GetMouseButtonDown(1);
         }
         
-        private bool IsHide()
+        private static bool HidePressed()
         {
             return Input.GetMouseButtonUp(1);
         }
@@ -238,16 +244,21 @@ namespace SnapshotUI
 
             if (!_isBig && _snapshotCards.Count >= 2)
             {
-                if (IsScrollForard())
+                if (IsScrollForward())
                     StartCoroutine(ScrollForward());
 
                 if (IsScrollBack())
                     StartCoroutine(ScrollBack());
             }
-
-            if ((IsShow() || IsHide()) && _snapshotCards.Count >= 1)
+            
+            if (HidePressed() && _isBig && _snapshotCards.Count >= 1)
             {
-                StartCoroutine(ShowHideSnapshot());
+                StartCoroutine(Hide());
+            }
+
+            if (ShowPressed() && !_isBig && _snapshotCards.Count >= 1)
+            {
+                StartCoroutine(Show());
             }
         }
     }
