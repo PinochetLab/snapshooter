@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Electricity.Wires;
 using UnityEngine;
 
 namespace Wires
@@ -24,8 +25,6 @@ namespace Wires
         [SerializeField] private float fillRatio = 0.75f;
         
         private List<MaterialPropertyBlock> _propertyBlocks = new ();
-        private float _switchDelay;
-        private float _switchTime;
         private List<Current> _currents = new ();
         private bool _startOn;
         private bool _endOn;
@@ -46,21 +45,19 @@ namespace Wires
             GenerateCurrentMaterial();
         }
 
+        public void TurnOn()
+        {
+            _startOn = true;
+            _currents.Insert(0, new Current());
+        }
+        
+        public void TurnOff()
+        {
+            _startOn = false;
+        }
+
         private void Update()
         {
-            _switchTime += Time.deltaTime;
-            if (_switchTime >= _switchDelay)
-            {
-                _switchTime = 0;
-                _switchDelay = Random.Range(2f, 20f);
-                Debug.Log(_switchDelay + " " + !_startOn);
-                _startOn = !_startOn;
-                if (_startOn)
-                {
-                    _currents.Insert(0, new Current());
-                }
-            }
-
             var deltaCurrent = CurrentSpeed * Time.deltaTime;
 
             if (_currents.Count > 0 && _startOn)
@@ -69,7 +66,6 @@ namespace Wires
                 if (!current.EndOn)
                 {
                     current.End += deltaCurrent;
-                    print(current.End);
                     if (current.End >= wireLength)
                     {
                         current.End = wireLength;
@@ -117,7 +113,6 @@ namespace Wires
             for (var i = 0; i < _currents.Count; i++)
             {
                 lineRenderers[i].enabled = true;
-                Debug.Log($"{i} {_currents[i].Start} {_currents[i].End}");
                 SetCurrent(i,  _currents[i].Start, _currents[i].End);
             }
 
@@ -150,7 +145,6 @@ namespace Wires
             {
                 var propertyBlock = new MaterialPropertyBlock();
                 lineRenderer.sharedMaterial = Instantiate(new Material(currentMaterial));
-                Debug.Log(lineRenderer + " " + lineRenderer.sharedMaterial);
                 _propertyBlocks.Add(propertyBlock);
             }
         }
