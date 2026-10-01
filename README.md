@@ -28,6 +28,8 @@ The project explores the interaction between the 3D game world, camera rendering
 - Unity
 - C#
 - URP
+- Zenject
+- Shader Graph
 
 ## About the Project
 
