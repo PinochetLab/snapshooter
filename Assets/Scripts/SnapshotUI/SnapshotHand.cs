@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Interaction;
 using Players;
 using Snapshots;
 using UnityEngine;
@@ -25,6 +26,7 @@ namespace SnapshotUI
         [SerializeField] private float topPositionY = 500;
 
         [Inject] private Player _player;
+        [Inject] private InteractionManager _interactionManager;
 
         private bool _isMoving;
         private bool _isBig;
@@ -96,6 +98,7 @@ namespace SnapshotUI
         public void EndAlign()
         {
             StartCoroutine(RemoveSnapshotCor());
+            _interactionManager.FadeIn();
         }
 
         private IEnumerator RemoveSnapshotCor()

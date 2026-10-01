@@ -1,17 +1,17 @@
 using System;
+using Electricity.Wires;
 using Interaction;
 using UnityEngine;
+using UnityEngine.Events;
 using Wires;
 
 namespace Electricity
 {
-    public class Lever : MonoBehaviour, IInteractable
+    public class Lever : MonoBehaviour, IInteractable, ISource
     {
         [SerializeField] private Transform axisTransform;
         [SerializeField] private float spinSpeed = 50f;
         [SerializeField] private float maxAngle = 30f;
-
-        [SerializeField] private Wire wire;
         
         private bool _activated;
         private bool _move;
@@ -33,11 +33,11 @@ namespace Electricity
             
             if (_activated)
             {
-                wire.TurnOn();
+                Wire.TurnOn();
             }
             else
             {
-                wire.TurnOff();
+                Wire.TurnOff();
             }
             
             SetTargetAngle();
@@ -84,6 +84,8 @@ namespace Electricity
             {
                 _move = false;
             }
-        } 
+        }
+
+        public Wire Wire { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Furniture.Ladders;
+﻿using System.Collections;
+using Furniture.Ladders;
 using ModestTree;
 using UnityEngine;
 using Zenject;
@@ -12,6 +13,8 @@ namespace Interaction
         [SerializeField] private LayerMask interactionLayerMask = -1;
         [SerializeField] private float maxDistance = 1f;
         [SerializeField] private LayerMask ladderLayerMask;
+        [SerializeField] private CanvasGroup canvasGroup;
+        [SerializeField] private float fadeInDuration = 0.2f;
         
         [Inject] private InteractionText _interactionText;
     
@@ -23,6 +26,28 @@ namespace Interaction
         {
             PerformInteractionCheck();
             HandleInteractionInput();
+        }
+
+        public void FadeIn()
+        {
+            StartCoroutine(FadeInCor());
+        }
+
+        private IEnumerator FadeInCor()
+        {
+            canvasGroup.alpha = 0;
+
+            var dt = 0.02f;
+            var n = (int)(fadeInDuration / dt) + 1;
+            dt = fadeInDuration / n;
+
+            for (var i = 0; i < n; i++)
+            {
+                canvasGroup.alpha = (float) i / n;
+                yield return new WaitForSeconds(dt);
+            }
+
+            canvasGroup.alpha = 1f;
         }
 
         private void PerformInteractionCheck()

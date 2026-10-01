@@ -1,15 +1,18 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Electricity.Wires;
 using UnityEngine;
+using UnityEngine.Events;
+using Wires;
 
-namespace Wires
+namespace Electricity.Wires
 {
     public class Wire : MonoBehaviour
     {
         private static readonly int StartClip = Shader.PropertyToID("_StartClip");
         private static readonly int EndClip = Shader.PropertyToID("_EndClip");
         private const float CurrentSpeed = 2f;
+        
         [SerializeField] private float wireRadius = 0.07f;
         [SerializeField] private float glassWidth = 0.01f;
         [SerializeField] private float roundRadius = 0.15f;
@@ -24,10 +27,22 @@ namespace Wires
         [Range(0, 1)]
         [SerializeField] private float fillRatio = 0.75f;
         
+        [Header("Data")]
+        [SerializeField] private MonoBehaviour sourceMb; 
+        [SerializeField] private MonoBehaviour loadMb; 
+        
         private List<MaterialPropertyBlock> _propertyBlocks = new ();
         private List<Current> _currents = new ();
         private bool _startOn;
-        private bool _endOn;
+        private ISource _source;
+        private ILoad _load;
+
+        private void InitLoadSource()
+        {
+            _source = sourceMb as ISource;
+            _load = loadMb as ILoad;
+            _source.Wire = this;
+        }
 
         [ContextMenu("Generate")]
         private void Generate()
@@ -42,6 +57,7 @@ namespace Wires
 
         private void Awake()
         {
+            InitLoadSource();
             GenerateCurrentMaterial();
         }
 
@@ -70,7 +86,7 @@ namespace Wires
                     {
                         current.End = wireLength;
                         current.EndOn = true;
-                        _endOn = true;
+                        _load.PowerUp();
                     }
                 }
             }
@@ -90,7 +106,7 @@ namespace Wires
                     {
                         current.End = wireLength;
                         current.EndOn = true;
-                        _endOn = true;
+                        _load.PowerUp();
                     }
                 }
                 
@@ -99,7 +115,7 @@ namespace Wires
                 if (current.Start >= wireLength)
                 {
                     currentsToRemove.Add(current);
-                    _endOn = false;
+                    _load.PowerDown();
                 }
             }
 
